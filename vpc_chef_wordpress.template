@@ -1,0 +1,82 @@
+{
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.1.0/16"
+      }
+    },
+    "PublicSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.1.0/24",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "GateWayToInternet": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRouterTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouterTable"
+        }
+      }
+    },
+    "PublicSubnetRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouterTable"
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        }
+      }
+    },
+    "PublicInstance": {
+      "Type": "AWS::EC2::Instance",
+      "DependsOn": "GateWayToInternet",
+      "Properties": {
+        "ImageId": "ami-f5f41398",
+        "InstanceType": "t2.micro",
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": true,
+            "DeleteOnTermination": true,
+            "DeviceIndex": "0",
+            "SubnetId": {
+              "Ref": "PublicSubnet"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
